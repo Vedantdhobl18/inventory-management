@@ -1,69 +1,60 @@
+import { Request, Response } from "express";
 import { PrismaClient } from "@prisma/client";
-import fs from "fs";
-import path from "path";
+
 const prisma = new PrismaClient();
 
-async function deleteAllData(orderedFileNames: string[]) {
-  const modelNames = orderedFileNames.map((fileName) => {
-    const modelName = path.basename(fileName, path.extname(fileName));
-    return modelName.charAt(0).toUpperCase() + modelName.slice(1);
-  });
+export const getDashboardMetrics = async (
+  req: Request,
+  res: Response
+): Promise<void> => {
+  try {
+    const popularProducts = await prisma.products.findMany({
+      take: 15,
+      orderBy: {
+        stockQuantity: "desc",
+      },
+    });
+    const salesSummary = await prisma.salesSummary.findMany({
+      take: 5,
+      orderBy: {
+        date: "desc",
+      },
+    });
+    const purchaseSummary = await prisma.purchaseSummary.findMany({
+      take: 5,
+      orderBy: {
+        date: "desc",
+      },
+    });
+    const expenseSummary = await prisma.expenseSummary.findMany({
+      take: 5,
+      orderBy: {
+        date: "desc",
+      },
+    });
+    const expenseByCategorySummaryRaw = await prisma.expenseByCategory.findMany(
+      {
+        take: 5,
+        orderBy: {
+          date: "desc",
+        },
+      }
+    );
+    const expenseByCategorySummary = expenseByCategorySummaryRaw.map(
+      (item) => ({
+        ...item,
+        amount: item.amount.toString(),
+      })
+    );
 
-  for (const modelName of modelNames) {
-    const model: any = prisma[modelName as keyof typeof prisma];
-    if (model) {
-      await model.deleteMany({});
-      console.log(`Cleared data from ${modelName}`);
-    } else {
-      console.error(
-        `Model ${modelName} not found. Please ensure the model name is correctly specified.`
-      );
-    }
+    res.json({
+      popularProducts,
+      salesSummary,
+      purchaseSummary,
+      expenseSummary,
+      expenseByCategorySummary,
+    });
+  } catch (error) {
+    res.status(500).json({ message: "Error retrieving dashboard metrics" });
   }
-}
-
-async function main() {
-  const dataDirectory = path.join(__dirname, "seedData");
-
-  const orderedFileNames = [
-    "products.json",
-    "expenseSummary.json",
-    "sales.json",
-    "salesSummary.json",
-    "purchases.json",
-    "purchaseSummary.json",
-    "users.json",
-    "expenses.json",
-    "expenseByCategory.json",
-  ];
-
-  await deleteAllData(orderedFileNames);
-
-  for (const fileName of orderedFileNames) {
-    const filePath = path.join(dataDirectory, fileName);
-    const jsonData = JSON.parse(fs.readFileSync(filePath, "utf-8"));
-    const modelName = path.basename(fileName, path.extname(fileName));
-    const model: any = prisma[modelName as keyof typeof prisma];
-
-    if (!model) {
-      console.error(`No Prisma model matches the file name: ${fileName}`);
-      continue;
-    }
-
-    for (const data of jsonData) {
-      await model.create({
-        data,
-      });
-    }
-
-    console.log(`Seeded ${modelName} with data from ${fileName}`);
-  }
-}
-
-main()
-  .catch((e) => {
-    console.error(e);
-  })
-  .finally(async () => {
-    await prisma.$disconnect();
-  });
+};

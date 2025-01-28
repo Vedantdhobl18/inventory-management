@@ -8,69 +8,53 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
 Object.defineProperty(exports, "__esModule", { value: true });
+exports.getDashboardMetrics = void 0;
 const client_1 = require("@prisma/client");
-const fs_1 = __importDefault(require("fs"));
-const path_1 = __importDefault(require("path"));
 const prisma = new client_1.PrismaClient();
-function deleteAllData(orderedFileNames) {
-    return __awaiter(this, void 0, void 0, function* () {
-        const modelNames = orderedFileNames.map((fileName) => {
-            const modelName = path_1.default.basename(fileName, path_1.default.extname(fileName));
-            return modelName.charAt(0).toUpperCase() + modelName.slice(1);
+const getDashboardMetrics = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const popularProducts = yield prisma.products.findMany({
+            take: 15,
+            orderBy: {
+                stockQuantity: "desc",
+            },
         });
-        for (const modelName of modelNames) {
-            const model = prisma[modelName];
-            if (model) {
-                yield model.deleteMany({});
-                console.log(`Cleared data from ${modelName}`);
-            }
-            else {
-                console.error(`Model ${modelName} not found. Please ensure the model name is correctly specified.`);
-            }
-        }
-    });
-}
-function main() {
-    return __awaiter(this, void 0, void 0, function* () {
-        const dataDirectory = path_1.default.join(__dirname, "seedData");
-        const orderedFileNames = [
-            "products.json",
-            "expenseSummary.json",
-            "sales.json",
-            "salesSummary.json",
-            "purchases.json",
-            "purchaseSummary.json",
-            "users.json",
-            "expenses.json",
-            "expenseByCategory.json",
-        ];
-        yield deleteAllData(orderedFileNames);
-        for (const fileName of orderedFileNames) {
-            const filePath = path_1.default.join(dataDirectory, fileName);
-            const jsonData = JSON.parse(fs_1.default.readFileSync(filePath, "utf-8"));
-            const modelName = path_1.default.basename(fileName, path_1.default.extname(fileName));
-            const model = prisma[modelName];
-            if (!model) {
-                console.error(`No Prisma model matches the file name: ${fileName}`);
-                continue;
-            }
-            for (const data of jsonData) {
-                yield model.create({
-                    data,
-                });
-            }
-            console.log(`Seeded ${modelName} with data from ${fileName}`);
-        }
-    });
-}
-main()
-    .catch((e) => {
-    console.error(e);
-})
-    .finally(() => __awaiter(void 0, void 0, void 0, function* () {
-    yield prisma.$disconnect();
-}));
+        const salesSummary = yield prisma.salesSummary.findMany({
+            take: 5,
+            orderBy: {
+                date: "desc",
+            },
+        });
+        const purchaseSummary = yield prisma.purchaseSummary.findMany({
+            take: 5,
+            orderBy: {
+                date: "desc",
+            },
+        });
+        const expenseSummary = yield prisma.expenseSummary.findMany({
+            take: 5,
+            orderBy: {
+                date: "desc",
+            },
+        });
+        const expenseByCategorySummaryRaw = yield prisma.expenseByCategory.findMany({
+            take: 5,
+            orderBy: {
+                date: "desc",
+            },
+        });
+        const expenseByCategorySummary = expenseByCategorySummaryRaw.map((item) => (Object.assign(Object.assign({}, item), { amount: item.amount.toString() })));
+        res.json({
+            popularProducts,
+            salesSummary,
+            purchaseSummary,
+            expenseSummary,
+            expenseByCategorySummary,
+        });
+    }
+    catch (error) {
+        res.status(500).json({ message: "Error retrieving dashboard metrics" });
+    }
+});
+exports.getDashboardMetrics = getDashboardMetrics;
