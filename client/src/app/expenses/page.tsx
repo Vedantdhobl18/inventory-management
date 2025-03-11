@@ -90,7 +90,7 @@ const Expenses = () => {
 
   return (
     <div>
-      {/* HEADER */}
+      
       <div className="mb-5">
         <Header name="Expenses" />
         <p className="text-sm text-gray-500">
@@ -98,14 +98,14 @@ const Expenses = () => {
         </p>
       </div>
 
-      {/* FILTERS */}
+      
       <div className="flex flex-col md:flex-row justify-between gap-4">
         <div className="w-full md:w-1/3 bg-white shadow rounded-lg p-6">
           <h3 className="text-lg font-semibold mb-4">
             Filter by Category and Date
           </h3>
           <div className="space-y-4">
-            {/* CATEGORY */}
+            
             <div>
               <label htmlFor="category" className={classNames.label}>
                 Category
@@ -119,11 +119,11 @@ const Expenses = () => {
               >
                 <option>All</option>
                 <option>Office</option>
-                <option>Professional</option>
+                <option>Profes sional</option>
                 <option>Salaries</option>
               </select>
             </div>
-            {/* START DATE */}
+            
             <div>
               <label htmlFor="start-date" className={classNames.label}>
                 Start Date
@@ -136,7 +136,7 @@ const Expenses = () => {
                 onChange={(e) => setStartDate(e.target.value)}
               />
             </div>
-            {/* END DATE */}
+            
             <div>
               <label htmlFor="end-date" className={classNames.label}>
                 End Date
@@ -151,7 +151,7 @@ const Expenses = () => {
             </div>
           </div>
         </div>
-        {/* PIE CHART */}
+        
         <div className="flex-grow bg-white shadow rounded-lg p-4 md:p-6">
           <ResponsiveContainer width="100%" height={400}>
             <PieChart>
@@ -186,4 +186,4 @@ const Expenses = () => {
   );
 };
 
-export default Expenses;
+export default Expenses; 

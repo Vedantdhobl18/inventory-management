@@ -1,5 +1,10 @@
 "use client";
-
+import {
+  SignInButton,
+  SignedIn,
+  SignedOut,
+  UserButton,
+} from '@clerk/nextjs'
 import { useAppDispatch, useAppSelector } from "@/app/redux";
 import { setIsDarkMode, setIsSidebarCollapsed } from "@/app/state";
 import { Bell, Menu, Moon, Settings, Sun } from "lucide-react";
@@ -45,7 +50,9 @@ const Navbar = () => {
           </div>
         </div>
       </div>
-
+      
+      <div className="flex items-center mr-2"> {/* Added mr-2 to reduce right margin */}
+    <div className="flex items-center gap-5"> {/* Reduced gap-1 for tighter spacing */}
       {/* RIGHT SIDE */}
       <div className="flex justify-between items-center gap-5">
         <div className="hidden md:flex justify-between items-center gap-5">
@@ -65,15 +72,27 @@ const Navbar = () => {
             </span>
           </div>
           <hr className="w-0 h-7 border border-solid border-l border-gray-300 mx-3" />
-          <div className="flex items-center gap-3 cursor-pointer">
-           
-            <span className="font-semibold">Ed Roh</span>
-          </div>
+          
         </div>
         <Link href="/settings">
           <Settings className="cursor-pointer text-gray-500" size={24} />
         </Link>
       </div>
+      <SignedOut>
+      <SignInButton />
+    </SignedOut>
+    <SignedIn>
+      <UserButton 
+        afterSignOutUrl="/sign-in" 
+        appearance={{
+          elements: {
+            rootBox: "flex items-center mr-0 ",
+          }
+        }}
+      />
+    </SignedIn>
+    </div>
+    </div>
     </div>
   );
 };
